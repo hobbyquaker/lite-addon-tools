@@ -41,7 +41,9 @@ concurrency:
 
 jobs:
   follow:
-    runs-on: ubuntu-latest
+    # Gitea: the repository variable TOOLS_RUNNER names the build host's runner for this repository
+    # (label lite-addon-tools, host mode, the shared caches); unset on GitHub: a hosted runner
+    runs-on: ${{ vars.TOOLS_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 480
     steps:
       - uses: actions/checkout@v5
