@@ -154,7 +154,10 @@ for arch in $ARCHES; do
     [ -n "$d" ] && cp -a "$d" "$S/$ADDON_ID/share/licenses/"
     cp LICENSE "$S/$ADDON_ID/share/licenses/LICENSE.lite-addon-tools"
     if [ -n "${SOURCES:-}" ] && [ "$arch" = "$(echo $ARCHES | awk '{print $1}')" ]; then
+        # without the prebuilt toolchain archive (80 MB of binaries, not sources): what of it is
+        # linked in is musl (MIT) and libgcc (GCC runtime exception); Bootlin publishes its sources
         COPYFILE_DISABLE=1 tar --owner=root --group=root --sort=name -cf "$DIST_DIR/tools-sources-$VERSION.tar" \
+            --exclude='sources/toolchain-external-bootlin-*' \
             -C "$O/legal-info" sources manifest.csv buildroot.config
         (cd "$DIST_DIR" && sha256sum "tools-sources-$VERSION.tar" > "tools-sources-$VERSION.tar.sha256")
     fi
