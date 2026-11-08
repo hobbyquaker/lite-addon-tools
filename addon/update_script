@@ -1,0 +1,48 @@
+#!/bin/sh
+#
+#   update_script of lite-addon-tools (MIT): the CCU addon handbook's steps (chapter 02), for
+#   openccu-lite only. The system unpacks the archive below /usr/local/tmp, cd's into it and runs
+#   ./update_script. Exit 10 = fresh install, 0 = update. The manifest openccu-lite.json beside
+#   this script is read by the system before this script runs.
+#
+#   The addon's tree is tools/ next to this script: bin/ (the static tools; openccu-lite puts it
+#   on the shell's PATH from the manifest's runtime.bin), share/ (terminfo, nmap's and arp-scan's
+#   data, VERSIONS, the licences), etc/ (arp-scan's mac-vendor.txt), www/ (the icons), rc.d (no
+#   service: info and uninstall only), versions.
+#
+#   Nothing is written outside the addon's tree but the rc.d link and the www link: there is no
+#   configuration, no data and no service.
+#
+
+ADDON=tools
+ADDONS_DIR=/usr/local/addons
+ADDON_DIR=$ADDONS_DIR/$ADDON
+CONF_DIR=/usr/local/etc/config
+WWW_DIR=$CONF_DIR/addons/www/$ADDON
+EXITCODE=10
+
+mount | grep /usr/local >/dev/null 2>&1 || mount /usr/local
+
+mkdir -p $ADDONS_DIR && chmod 755 $ADDONS_DIR
+mkdir -p $CONF_DIR/addons/www && chmod 755 $CONF_DIR/addons/www
+mkdir -p $CONF_DIR/rc.d
+
+[ -f $CONF_DIR/rc.d/$ADDON ] && EXITCODE=0
+
+# the whole tree is the program's: nothing stale may survive an update
+rm -rf "${ADDON_DIR:?}/bin" "${ADDON_DIR:?}/share" "${ADDON_DIR:?}/etc" "${ADDON_DIR:?}/www" \
+    "${ADDON_DIR:?}/rc.d" "${ADDON_DIR:?}/versions"
+
+mkdir -p $ADDON_DIR
+cp -af $ADDON/bin $ADDON/share $ADDON/etc $ADDON/www $ADDON/rc.d $ADDON/versions $ADDON_DIR/
+chmod 755 $ADDON_DIR/bin/* $ADDON_DIR/rc.d
+
+# the tools are in the release package: not worth a backup
+touch $ADDON_DIR/bin/.nobackup $ADDON_DIR/share/.nobackup $ADDON_DIR/etc/.nobackup $ADDON_DIR/www/.nobackup
+
+rmdir $WWW_DIR 2>/dev/null
+ln -sfn $ADDON_DIR/www $WWW_DIR
+ln -sf $ADDON_DIR/rc.d $CONF_DIR/rc.d/$ADDON
+
+sync
+exit $EXITCODE

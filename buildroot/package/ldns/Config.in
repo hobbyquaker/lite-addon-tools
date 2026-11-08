@@ -1,0 +1,10 @@
+config BR2_PACKAGE_LDNS
+	bool "ldns (drill)"
+	depends on BR2_USE_MMU
+	select BR2_PACKAGE_OPENSSL
+	help
+	  NLnet Labs' DNS library and its lookup tool drill, a dig
+	  alternative. Buildroot's bind (dig) cannot be linked
+	  statically (libuv).
+
+	  https://www.nlnetlabs.nl/projects/ldns/

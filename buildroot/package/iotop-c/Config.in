@@ -1,0 +1,10 @@
+config BR2_PACKAGE_IOTOP_C
+	bool "iotop-c"
+	depends on BR2_USE_MMU
+	select BR2_PACKAGE_NCURSES
+	help
+	  iotop in C (no Python): per-process I/O, from the kernel's
+	  taskstats (CONFIG_TASKSTATS, CONFIG_TASK_IO_ACCOUNTING,
+	  CONFIG_TASK_DELAY_ACCT).
+
+	  https://github.com/Tomas-M/iotop

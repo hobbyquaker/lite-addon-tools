@@ -1,0 +1,2 @@
+name: LITE_TOOLS
+desc: lite-addon-tools: the packages Buildroot lacks or builds only dynamically, and the addon's paths

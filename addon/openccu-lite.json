@@ -1,0 +1,27 @@
+{
+  "format": 1,
+  "id": "tools",
+  "name": "Admin-Werkzeuge",
+  "description": {
+    "de": "Werkzeuge für die Fehlersuche und Verwaltung über ssh: socat, tcpdump, strace, nmap, htop, iotop, nano, mtr, iperf3, drill, ss, iftop, arp-scan, tmux, ncdu, picocom, lsof, pstree, mmc und gdbserver. Statisch gebaut, ohne Abhängigkeiten vom System; kein Dienst, kein Port. Die meisten Werkzeuge brauchen root.",
+    "en": "Tools for troubleshooting and administration over ssh: socat, tcpdump, strace, nmap, htop, iotop, nano, mtr, iperf3, drill, ss, iftop, arp-scan, tmux, ncdu, picocom, lsof, pstree, mmc and gdbserver. Built statically, with no dependency on the system; no service, no port. Most tools need root."
+  },
+  "version": "0.0.0-dev",
+  "homepage": "https://github.com/hobbyquaker/lite-addon-tools",
+  "licence": "MIT (packaging); the tools under their own licences (GPL-2.0+, BSD and others, listed in share/licenses)",
+  "requires": {
+    "architectures": ["aarch64", "x86_64"]
+  },
+  "ui": {
+    "icon": "tools/www/icon.svg",
+    "icon_dark": "tools/www/icon-dark.svg"
+  },
+  "runtime": {
+    "bin": "bin",
+    "needs": [],
+    "note": {
+      "de": "Startet keinen Dienst und öffnet keinen Port. Legt seine Werkzeuge in den Suchpfad (PATH) der Anmelde-Shell; Befehle des Systems mit demselben Namen gehen vor. Die Werkzeuge werden über ssh als root aufgerufen.",
+      "en": "Starts no service and opens no port. Puts its tools on the login shell's search path (PATH); the system's own commands of the same name come first. The tools are run over ssh as root."
+    }
+  }
+}

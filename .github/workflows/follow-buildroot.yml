@@ -1,0 +1,142 @@
+# Follows openccu-lite's Buildroot: once a day it reads the Buildroot pin of the newest openccu-lite
+# release (its Makefile's BUILDROOT_VERSION and BUILDROOT_SHA256); on the 1st of each month, and when
+# started by hand with point_releases, also the newest Buildroot point release of that series. When
+# that is newer than buildroot.version it builds both architectures, runs the smoke test, and on
+# green commits buildroot.version and the changelog entry, tags v<version> and publishes the release
+# with the packages, their .sha256 sidecars and the sources (Buildroot's legal-info). On red nothing
+# is released: an issue names the failing run.
+#
+# Versions: <Buildroot YYYY.MM.P>.<n>, n counting the releases on one Buildroot (README, "Versions").
+# rebuild (by hand) releases the next n on the same Buildroot - for a change to the packaging.
+# dry_run: check, build and test, but neither push nor release.
+#
+# Runs unchanged on Gitea and GitHub: scripts/follow.sh decides, scripts/forge.sh releases.
+name: follow-buildroot
+
+on:
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+    inputs:
+      point_releases:
+        description: 'also look for a newer Buildroot point release'
+        type: boolean
+        default: false
+      rebuild:
+        description: 'release the next version even when Buildroot is unchanged'
+        type: boolean
+        default: false
+      dry_run:
+        description: 'check, build and test, but neither push nor release'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: follow-buildroot
+  cancel-in-progress: false
+
+jobs:
+  follow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 480
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: is there a newer Buildroot?
+        id: check
+        env:
+          GH_TOKEN: ${{ github.server_url == 'https://github.com' && github.token || '' }}
+        run: |
+          set -eu
+          p=
+          if [ "$(date -u +%d)" = 01 ] || [ "${{ inputs.point_releases }}" = true ]; then p=--point-releases; fi
+          scripts/follow.sh check $p
+          if [ "${{ inputs.rebuild }}" = true ]; then echo "go=yes" >> "$GITHUB_OUTPUT"; else
+            grep -q '^bump=yes$' "$GITHUB_OUTPUT" && echo "go=yes" >> "$GITHUB_OUTPUT" || echo "go=no" >> "$GITHUB_OUTPUT"
+          fi
+      - name: the new pin, the version, the changelog
+        id: ver
+        if: steps.check.outputs.go == 'yes'
+        run: |
+          set -eu
+          if [ "${{ steps.check.outputs.bump }}" = yes ]; then
+            scripts/follow.sh apply "${{ steps.check.outputs.target }}" "${{ steps.check.outputs.url }}" "${{ steps.check.outputs.sha256 }}"
+          fi
+          . ./buildroot.version
+          v=$(scripts/follow.sh next-version "$BUILDROOT_VERSION")
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          case $v in *-*) echo "prerelease=yes" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=no" >> "$GITHUB_OUTPUT" ;; esac
+          if [ "${{ steps.check.outputs.bump }}" = yes ]; then
+            why="Buildroot $BUILDROOT_VERSION (openccu-lite ${{ steps.check.outputs.lite }} pins ${{ steps.check.outputs.lite_buildroot }}); the tools in the versions Buildroot $BUILDROOT_VERSION carries."
+          else
+            why="Rebuilt on Buildroot $BUILDROOT_VERSION."
+          fi
+          echo "why=$why" >> "$GITHUB_OUTPUT"
+          python3 - "$v" "$(date -u +%F)" "$why" <<'PY'
+          import sys
+          v, d, why = sys.argv[1:4]
+          cl = open('CHANGELOG.md').read()
+          entry = f"## [{v}] - {d}\n\n- {why} (released by the follow-buildroot workflow)\n\n"
+          open('CHANGELOG.md', 'w').write(cl.replace('# Changelog\n\n', '# Changelog\n\n' + entry, 1))
+          PY
+          echo "$v: $why"
+      - name: host tools (GitHub's runners lack qemu-user)
+        if: steps.check.outputs.go == 'yes'
+        run: |
+          command -v qemu-aarch64 >/dev/null || command -v qemu-aarch64-static >/dev/null \
+            || { sudo apt-get update -qq && sudo apt-get install -y -qq qemu-user; }
+      - name: caches (GitHub only)
+        if: steps.check.outputs.go == 'yes' && github.server_url == 'https://github.com'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/lite-addon-tools/dl
+            ~/.cache/lite-addon-tools/ccache-x86_64
+            ~/.cache/lite-addon-tools/ccache-aarch64
+          key: br-follow-${{ hashFiles('buildroot.version', 'buildroot/**') }}
+          restore-keys: br-follow-
+      - name: build both architectures
+        if: steps.check.outputs.go == 'yes'
+        run: SOURCES=1 VERSION=${{ steps.ver.outputs.version }} DIST_DIR=$PWD/dist scripts/build.sh
+      - name: smoke test
+        if: steps.check.outputs.go == 'yes'
+        run: scripts/smoke.sh dist/tools-x86_64-${{ steps.ver.outputs.version }}.tar.gz dist/tools-aarch64-${{ steps.ver.outputs.version }}.tar.gz
+      - name: commit, tag and release v${{ steps.ver.outputs.version }}
+        if: steps.check.outputs.go == 'yes' && !inputs.dry_run
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          v=${{ steps.ver.outputs.version }}
+          git config user.name "lite-addon-tools follow-buildroot"
+          git config user.email "noreply@users.noreply.github.com"
+          git add buildroot.version CHANGELOG.md
+          git commit -m "lite-addon-tools $v: ${{ steps.ver.outputs.why }}
+
+          The follow-buildroot workflow: both architectures built and smoke-tested on this tree."
+          git tag -a "v$v" -m "lite-addon-tools $v"
+          git push origin HEAD:main "v$v"
+          br=$(sed -n 's/^BUILDROOT_VERSION=//p' buildroot.version)
+          {
+            printf 'lite-addon-tools %s: the tools built with Buildroot %s and Bootlin'"'"'s musl toolchain, statically linked.\n\n' "$v" "$br"
+            printf '%s\n\nThe versions inside:\n\n```\n' "${{ steps.ver.outputs.why }}"
+            sed -n '2,$p' ~/.cache/lite-addon-tools/build/stage-x86_64/tools/share/VERSIONS
+            printf '```\n\nThe packages per architecture (`uname -m`) with their `.sha256` sidecars; the system'"'"'s Addons page installs them. `tools-sources-%s.tar` holds the sources of everything inside (Buildroot'"'"'s legal-info).\n' "$v"
+          } > "$RUNNER_TEMP/notes.md"
+          scripts/forge.sh release "v$v" "$RUNNER_TEMP/notes.md" "${{ steps.ver.outputs.prerelease }}" dist/*.tar.gz dist/*.tar dist/*.sha256
+      - name: open an issue when it went red
+        if: failure() && steps.check.outputs.go == 'yes'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          title="follow-buildroot: Buildroot ${{ steps.check.outputs.target }} did not pass"
+          printf 'The follow-buildroot workflow tried to build the tools with Buildroot %s (from %s; openccu-lite %s pins %s), and it went red: %s/%s/actions/runs/%s\n\nNothing was released. A package that no longer builds statically, a tool Buildroot dropped or renamed, or a smoke test the new versions break.\n' \
+            "${{ steps.check.outputs.target }}" "${{ steps.check.outputs.current }}" "${{ steps.check.outputs.lite }}" "${{ steps.check.outputs.lite_buildroot }}" \
+            "${{ github.server_url }}" "${{ github.repository }}" "${{ github.run_id }}" > "$RUNNER_TEMP/issue.md"
+          scripts/forge.sh issue "$title" "$RUNNER_TEMP/issue.md"

@@ -1,0 +1,53 @@
+# Builds the tools for both architectures with Buildroot and Bootlin's musl toolchain and runs the
+# smoke test on the packages: every binary static, stripped, of the right machine, answering its
+# version or help option (aarch64 under qemu-user), the data paths compiled in.
+#
+# The same file runs on Gitea (now: the build host's runner for this repository, label
+# ubuntu-latest in host mode, with the shared /mnt/download and /mnt/ccache) and on GitHub (later:
+# a hosted runner, the caches through actions/cache). scripts/build.sh picks the caches itself.
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: build and smoke test (${{ matrix.arch }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@v5
+      - name: host tools (GitHub's runners lack qemu-user)
+        run: |
+          command -v qemu-aarch64 >/dev/null || command -v qemu-aarch64-static >/dev/null \
+            || { sudo apt-get update -qq && sudo apt-get install -y -qq qemu-user; }
+      - name: caches (GitHub only; the Gitea runner has /mnt/download and /mnt/ccache)
+        if: github.server_url == 'https://github.com'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/lite-addon-tools/dl
+            ~/.cache/lite-addon-tools/ccache-${{ matrix.arch }}
+          key: br-${{ matrix.arch }}-${{ hashFiles('buildroot.version', 'buildroot/**') }}
+          restore-keys: br-${{ matrix.arch }}-
+      - name: build
+        run: ARCHES=${{ matrix.arch }} VERSION=0.0.0-ci DIST_DIR=$PWD/dist scripts/build.sh
+      - name: smoke test
+        run: scripts/smoke.sh dist/tools-${{ matrix.arch }}-0.0.0-ci.tar.gz
+      - run: ls -l dist/ && cat ~/.cache/lite-addon-tools/build/stage-${{ matrix.arch }}/tools/share/VERSIONS
+      - uses: actions/upload-artifact@v4
+        if: github.server_url == 'https://github.com'
+        with:
+          name: packages-${{ matrix.arch }}
+          path: dist/
+          retention-days: 7

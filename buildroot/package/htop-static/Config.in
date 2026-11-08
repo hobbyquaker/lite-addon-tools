@@ -1,0 +1,13 @@
+config BR2_PACKAGE_HTOP_STATIC
+	bool "htop (static)"
+	depends on BR2_USE_MMU # fork()
+	depends on BR2_STATIC_LIBS
+	select BR2_PACKAGE_NCURSES
+	help
+	  Buildroot's htop, linked statically. Buildroot's own package
+	  refuses BR2_STATIC_LIBS because of the dlopen() of optional
+	  libraries (libsensors, libnl, libsystemd); htop's
+	  --enable-static builds without them. Same version and the
+	  same hash as package/htop.
+
+	  https://htop.dev/

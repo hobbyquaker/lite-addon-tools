@@ -1,0 +1,3 @@
+source "$BR2_EXTERNAL_LITE_TOOLS_PATH/package/htop-static/Config.in"
+source "$BR2_EXTERNAL_LITE_TOOLS_PATH/package/iotop-c/Config.in"
+source "$BR2_EXTERNAL_LITE_TOOLS_PATH/package/ldns/Config.in"

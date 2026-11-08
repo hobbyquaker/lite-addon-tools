@@ -1,0 +1,6 @@
+# The Buildroot the tools are built with: the one the newest openccu-lite release pins (its
+# Makefile's BUILDROOT_VERSION and BUILDROOT_SHA256), or a newer point release of the same series.
+# Written by scripts/follow.sh (the follow-buildroot workflow); sourced by scripts/build.sh.
+BUILDROOT_VERSION=2026.08.1
+BUILDROOT_URL=https://github.com/buildroot/buildroot/archive/refs/tags/2026.08.1.tar.gz
+BUILDROOT_SHA256=5313d2b5c366ecb6771543a8a587e5fab57d4c254c6c99e575f44466c248dee1
