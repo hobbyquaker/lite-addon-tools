@@ -76,6 +76,8 @@ for pkg in "$@"; do
     grep -q /usr/local/addons/tools/share/terminfo "$dir/tools/bin/htop" || err "htop: terminfo path not compiled in"
     grep -q /usr/local/addons/tools/share/nmap "$dir/tools/bin/nmap" || err "nmap: data path not compiled in"
     grep -q /usr/local/addons/tools/share/arp-scan "$dir/tools/bin/arp-scan" || err "arp-scan: data path not compiled in"
+    grep -q /usr/local/addons/tools/etc/arp-scan "$dir/tools/bin/arp-scan" || err "arp-scan: mac-vendor path not compiled in"
+    [ -f "$dir/tools/etc/arp-scan/mac-vendor.txt" ] || err "arp-scan: mac-vendor.txt missing"
     # nmap finds its data in the tree (NMAPDIR stands in for the installed path)
     out=$(cd "$dir" && NMAPDIR="$dir/tools/share/nmap" timeout 60 $q "$dir/tools/bin/nmap" -sL -n 127.0.0.1 2>&1) \
         || err "nmap -sL: $out"

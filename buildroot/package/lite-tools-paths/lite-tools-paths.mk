@@ -18,10 +18,11 @@ NCURSES_CONF_OPTS += \
 # nmap: nmap-services, nmap-os-db, nmap-mac-prefixes, ... (the build only; installed as usual)
 NMAP_MAKE_OPTS += nmapdatadir=$(LITE_TOOLS_PREFIX)/share/nmap
 
-# arp-scan: ieee-oui.txt and mac-vendor.txt
+# arp-scan: ieee-oui.txt (pkgdatadir) and mac-vendor.txt ($(sysconfdir)/arp-scan, spelled out in
+# its AM_CPPFLAGS)
 ARP_SCAN_MAKE_OPTS += \
 	pkgdatadir=$(LITE_TOOLS_PREFIX)/share/arp-scan \
-	pkgsysconfdir=$(LITE_TOOLS_PREFIX)/etc/arp-scan
+	sysconfdir=$(LITE_TOOLS_PREFIX)/etc
 
 # iperf3: no openssl (its --rsa-public-key authentication); a static libcrypto is 4 MB a binary
 IPERF3_CONF_OPTS += --without-openssl

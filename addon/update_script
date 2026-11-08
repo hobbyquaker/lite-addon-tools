@@ -2,8 +2,9 @@
 #
 #   update_script of lite-addon-tools (MIT): the CCU addon handbook's steps (chapter 02), for
 #   openccu-lite only. The system unpacks the archive below /usr/local/tmp, cd's into it and runs
-#   ./update_script. Exit 10 = fresh install, 0 = update. The manifest openccu-lite.json beside
-#   this script is read by the system before this script runs.
+#   ./update_script. Always exit 0 (installed, no reboot): there is no service to start, so the
+#   fresh-install 10 (rebooting) of the handbook does not apply. The manifest openccu-lite.json
+#   beside this script is read by the system before this script runs.
 #
 #   The addon's tree is tools/ next to this script: bin/ (the static tools; openccu-lite puts it
 #   on the shell's PATH from the manifest's runtime.bin), share/ (terminfo, nmap's and arp-scan's
@@ -19,15 +20,12 @@ ADDONS_DIR=/usr/local/addons
 ADDON_DIR=$ADDONS_DIR/$ADDON
 CONF_DIR=/usr/local/etc/config
 WWW_DIR=$CONF_DIR/addons/www/$ADDON
-EXITCODE=10
 
 mount | grep /usr/local >/dev/null 2>&1 || mount /usr/local
 
 mkdir -p $ADDONS_DIR && chmod 755 $ADDONS_DIR
 mkdir -p $CONF_DIR/addons/www && chmod 755 $CONF_DIR/addons/www
 mkdir -p $CONF_DIR/rc.d
-
-[ -f $CONF_DIR/rc.d/$ADDON ] && EXITCODE=0
 
 # the whole tree is the program's: nothing stale may survive an update
 rm -rf "${ADDON_DIR:?}/bin" "${ADDON_DIR:?}/share" "${ADDON_DIR:?}/etc" "${ADDON_DIR:?}/www" \
@@ -45,4 +43,4 @@ ln -sfn $ADDON_DIR/www $WWW_DIR
 ln -sf $ADDON_DIR/rc.d $CONF_DIR/rc.d/$ADDON
 
 sync
-exit $EXITCODE
+exit 0
