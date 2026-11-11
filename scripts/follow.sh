@@ -20,7 +20,7 @@
 #         The addon version for a new release built with that Buildroot (README, "Versions"):
 #         <YYYY>.<MM>.<P>.<n>, the Buildroot version with its point release always written (2026.08
 #         is 2026.08.0), and n one up from the highest existing tag of that Buildroot (from 1).
-#         The suffix in scripts/version-suffix (-dev while the addon is not published) is appended.
+#         The suffix in scripts/version-suffix (empty since the publication; -dev before) is appended.
 #
 #   LITE_REPO (default hobbyquaker/openccu-lite) and BUILDROOT_GIT (default the GitHub mirror) can be
 #   overridden for tests; GH_TOKEN, when set, is sent to the GitHub API (rate limit).

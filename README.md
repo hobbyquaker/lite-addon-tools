@@ -2,10 +2,6 @@
 
 *[English](README.en.md)*
 
-> **Noch nicht veröffentlicht.** Das Addon braucht eine openccu-lite-Version, die `runtime.bin` aus dem Manifest
-> kennt (die Werkzeuge im Suchpfad); sie kommt mit dem nächsten openccu-lite-Release. Auf älteren Systemen lässt es
-> sich installieren, die Werkzeuge werden dann mit vollem Pfad aufgerufen (`/usr/local/addons/tools/bin/htop`).
-
 **Werkzeuge für Fehlersuche und Verwaltung** auf einem [openccu-lite](https://github.com/hobbyquaker/openccu-lite)-System,
 für die Arbeit über ssh. Alle Programme sind **statisch gebaut** (Buildroot mit der musl-Toolchain von Bootlin) und
 hängen von nichts im System ab; das Addon startet **keinen Dienst** und öffnet **keinen Port**.
@@ -28,6 +24,14 @@ hängen von nichts im System ab; das Addon startet **keinen Dienst** und öffnet
 
 Die Versionen stehen in `/usr/local/addons/tools/share/VERSIONS` und in den Release-Notizen; es sind die, die das
 Buildroot des Releases mitbringt.
+
+## Installation
+
+Braucht **openccu-lite 1.2.1** oder neuer, die erste Version, die die Werkzeuge eines Addons in den Suchpfad legt;
+ältere Systeme lehnen die Installation ab. Das Paket `tools-<arch>-<version>.tar.gz` (`aarch64` für einen Raspberry
+Pi 3/4/5, `x86_64` für die virtuelle Appliance und PCs) von der
+[Releases-Seite](https://github.com/hobbyquaker/lite-addon-tools/releases) über die Addons-Seite des Systems
+installieren. Die Werkzeuge sind ab der nächsten ssh-Anmeldung da; eine schon offene Shell behält ihren Suchpfad.
 
 ## Benutzung
 
@@ -64,7 +68,6 @@ System selbst wieder entfernt) und hinterlässt nichts.
 `<Buildroot>.<n>`, z. B. `2026.08.1.1`: das Buildroot, mit dem gebaut wurde (immer mit Punkt-Release, `2026.08` ist
 `2026.08.0`), und die laufende Nummer der Releases auf diesem Buildroot. Wer die Version liest, weiß damit, welche
 Werkzeug-Versionen drin sind; die Reihenfolge ist die numerische, die das System beim Update-Vergleich verwendet.
-Solange das Addon nicht veröffentlicht ist, tragen die Versionen ein `-dev` (`2026.08.1.1-dev`).
 
 Neue Versionen kommen von selbst: ein Workflow liest täglich, welches Buildroot das neueste openccu-lite-Release
 verwendet, am Monatsersten auch das neueste Punkt-Release dieser Buildroot-Reihe; ist es neuer, baut er beide
@@ -82,6 +85,8 @@ scripts/smoke.sh dist/tools-*.tar.gz        # der Test (aarch64 unter qemu-user)
 Braucht, was Buildroot braucht (gcc, make, wget, cpio, rsync, bc, file, python3), und `qemu-user` für den Test.
 `buildroot/` ist ein BR2_EXTERNAL-Baum: die Konfiguration (`configs/`), htop statisch, iotop-c und ldns (drill), die
 Buildroot nicht oder nur dynamisch baut, und die Datenpfade im Addon (`package/lite-tools-paths`).
+`buildroot-patches/` enthält die Änderungen an Buildroot selbst, die vor dem Bau auf seinen Baum angewendet werden:
+OpenSSL aus der LTS-Reihe 3.5 statt Buildroots 3.6, deren Unterstützung ausgelaufen ist (für `drill` und `nmap`).
 
 ## Lizenz
 

@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 #   Releases and issues on whichever forge runs the workflow, so the workflow files stay the same on
-#   Gitea (now) and GitHub (later): on github.com through `gh`, elsewhere through Gitea's API.
+#   GitHub and Gitea: on github.com through `gh`, elsewhere through Gitea's API.
 #
 #     scripts/forge.sh release <tag> <notes-file> <prerelease yes|no> <file>...
 #     scripts/forge.sh issue <title> <body-file>        (not when an open issue has that title)

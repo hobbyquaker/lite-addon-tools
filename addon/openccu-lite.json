@@ -10,6 +10,7 @@
   "homepage": "https://github.com/hobbyquaker/lite-addon-tools",
   "licence": "MIT (packaging); the tools under their own licences (GPL-2.0+, BSD and others, listed in share/licenses)",
   "requires": {
+    "lite": "1.2.1",
     "architectures": ["aarch64", "x86_64"]
   },
   "ui": {
