@@ -43,8 +43,11 @@ mkdir -p "$BUILD_DIR" "$BR2_DL_DIR" "$DIST_DIR"
 export BR2_DL_DIR
 
 # ---- Buildroot itself ----------------------------------------------------------------------------
+# buildroot-patches/*.patch are applied to the extracted tree (today: OpenSSL 3.5 LTS); a tree
+# patched with other patches is extracted again
 BR=$BUILD_DIR/buildroot-$BUILDROOT_VERSION
-if [ ! -f "$BR/.lite-tools-ok" ]; then
+patches=$(cat /dev/null $(find buildroot-patches -name '*.patch' 2>/dev/null | sort) | sha256sum | cut -c1-16)
+if [ "$(cat "$BR/.lite-tools-ok" 2>/dev/null)" != "$patches" ]; then
     tarball=$BR2_DL_DIR/buildroot/buildroot-$BUILDROOT_VERSION.$(basename "$BUILDROOT_URL" | sed 's/.*\.\(tar\.[a-z0-9]*\)$/\1/')
     mkdir -p "$(dirname "$tarball")"
     if [ ! -f "$tarball" ] || ! echo "$BUILDROOT_SHA256  $tarball" | sha256sum -c --status; then
@@ -56,8 +59,12 @@ if [ ! -f "$BR/.lite-tools-ok" ]; then
     rm -rf "$BR" "$BR.tmp"
     mkdir -p "$BR.tmp"
     tar -xf "$tarball" -C "$BR.tmp" --strip-components=1
+    for p in $(find buildroot-patches -name '*.patch' 2>/dev/null | sort); do
+        echo ">>> Buildroot: applying $p"
+        patch -d "$BR.tmp" -p1 --no-backup-if-mismatch -s < "$p" || { echo "$p does not apply to Buildroot $BUILDROOT_VERSION" >&2; exit 1; }
+    done
     mv "$BR.tmp" "$BR"
-    touch "$BR/.lite-tools-ok"
+    echo "$patches" > "$BR/.lite-tools-ok"
 fi
 
 # trees of other Buildroot versions are not needed any more
@@ -83,7 +90,7 @@ for arch in $ARCHES; do
     fi
     # a tree built from other inputs (Buildroot, the configuration, the external packages) starts
     # over: Buildroot does not rebuild a package whose options changed. ccache keeps that cheap.
-    stamp=$(cat buildroot.version buildroot/configs/$arch.config $(find buildroot -type f | sort) | sha256sum | cut -c1-16)
+    stamp=$(cat buildroot.version buildroot/configs/$arch.config $(find buildroot buildroot-patches -type f | sort) | sha256sum | cut -c1-16)
     if [ -d "$O" ] && [ "$(cat "$O/.lite-tools-stamp" 2>/dev/null)" != "$stamp" ]; then
         echo ">>> $arch: inputs changed, starting the tree over"
         rm -rf "$O"

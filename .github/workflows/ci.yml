@@ -2,10 +2,9 @@
 # smoke test on the packages: every binary static, stripped, of the right machine, answering its
 # version or help option (aarch64 under qemu-user), the data paths compiled in.
 #
-# The same file runs on Gitea (now: the build host's runner for this repository, in host mode, with
-# the shared /mnt/download and /mnt/ccache; the instance's generic ubuntu-latest runner is too old
-# for actions/checkout@v5 and has no caches) and on GitHub (later: a hosted runner, the caches
-# through actions/cache). scripts/build.sh picks the caches itself.
+# The same file runs on GitHub (a hosted runner, the caches through actions/cache) and on a Gitea
+# runner in host mode named by the repository variable TOOLS_RUNNER (with shared /mnt/download and
+# /mnt/ccache, which scripts/build.sh picks itself).
 name: ci
 
 on:
@@ -41,7 +40,7 @@ jobs:
           path: |
             ~/.cache/lite-addon-tools/dl
             ~/.cache/lite-addon-tools/ccache-${{ matrix.arch }}
-          key: br-${{ matrix.arch }}-${{ hashFiles('buildroot.version', 'buildroot/**') }}
+          key: br-${{ matrix.arch }}-${{ hashFiles('buildroot.version', 'buildroot/**', 'buildroot-patches/**') }}
           restore-keys: br-${{ matrix.arch }}-
       - name: build
         run: ARCHES=${{ matrix.arch }} VERSION=0.0.0-ci DIST_DIR=$PWD/dist scripts/build.sh

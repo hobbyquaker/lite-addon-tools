@@ -26,6 +26,10 @@ on:
         description: 'release the next version even when Buildroot is unchanged'
         type: boolean
         default: false
+      why:
+        description: 'with rebuild: the changelog line and the release notes'' first paragraph (what changed)'
+        type: string
+        default: ''
       dry_run:
         description: 'check, build and test, but neither push nor release'
         type: boolean
@@ -64,6 +68,8 @@ jobs:
       - name: the new pin, the version, the changelog
         id: ver
         if: steps.check.outputs.go == 'yes'
+        env:
+          WHY: ${{ inputs.why }}
         run: |
           set -eu
           if [ "${{ steps.check.outputs.bump }}" = yes ]; then
@@ -75,6 +81,9 @@ jobs:
           case $v in *-*) echo "prerelease=yes" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=no" >> "$GITHUB_OUTPUT" ;; esac
           if [ "${{ steps.check.outputs.bump }}" = yes ]; then
             why="Buildroot $BUILDROOT_VERSION (openccu-lite ${{ steps.check.outputs.lite }} pins ${{ steps.check.outputs.lite_buildroot }}); the tools in the versions Buildroot $BUILDROOT_VERSION carries."
+          elif [ -n "${WHY:-}" ]; then
+            # later steps put it into double-quoted shell strings: no quotes, $, backticks or backslashes
+            why=$(printf '%s' "$WHY" | tr '\n' ' ' | tr -d '"$`\\')
           else
             why="Rebuilt on Buildroot $BUILDROOT_VERSION."
           fi
@@ -100,7 +109,7 @@ jobs:
             ~/.cache/lite-addon-tools/dl
             ~/.cache/lite-addon-tools/ccache-x86_64
             ~/.cache/lite-addon-tools/ccache-aarch64
-          key: br-follow-${{ hashFiles('buildroot.version', 'buildroot/**') }}
+          key: br-follow-${{ hashFiles('buildroot.version', 'buildroot/**', 'buildroot-patches/**') }}
           restore-keys: br-follow-
       - name: build both architectures
         if: steps.check.outputs.go == 'yes'
