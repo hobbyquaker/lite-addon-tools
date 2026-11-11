@@ -57,8 +57,10 @@ for pkg in "$@"; do
             *) opt=--version ;;
         esac
         if [ "$name" = mtr-packet ]; then
-            # mtr's helper speaks a line protocol on stdin; ask it for its version
-            out=$(cd "$dir" && echo '1 check-support feature version' | timeout 30 $q "$b" 2>&1); rc=$?
+            # mtr's helper speaks a line protocol on stdin; ask it for its version. It opens its raw
+            # sockets first, so it needs root (CAP_NET_RAW): through sudo where the runner is not root
+            su=; [ "$(id -u)" = 0 ] || ! sudo -n true 2>/dev/null || su="sudo -n"
+            out=$(cd "$dir" && echo '1 check-support feature version' | timeout 30 $su $q "$b" 2>&1); rc=$?
             case $out in *"1 feature-support support"*) ;; *) rc=125 ;; esac
         else
             out=$(cd "$dir" && timeout 30 $q "$b" $opt </dev/null 2>&1); rc=$?
