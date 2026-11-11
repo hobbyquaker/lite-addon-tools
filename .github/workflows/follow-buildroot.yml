@@ -78,6 +78,9 @@ jobs:
           . ./buildroot.version
           v=$(scripts/follow.sh next-version "$BUILDROOT_VERSION")
           echo "version=$v" >> "$GITHUB_OUTPUT"
+          # the manifest at the release tag names its version (the catalogue reads it there)
+          sed -i "s/^  \"version\": \"[^\"]*\",\$/  \"version\": \"$v\",/" addon/openccu-lite.json
+          grep -q "^  \"version\": \"$v\",\$" addon/openccu-lite.json
           case $v in *-*) echo "prerelease=yes" >> "$GITHUB_OUTPUT" ;; *) echo "prerelease=no" >> "$GITHUB_OUTPUT" ;; esac
           if [ "${{ steps.check.outputs.bump }}" = yes ]; then
             why="Buildroot $BUILDROOT_VERSION (openccu-lite ${{ steps.check.outputs.lite }} pins ${{ steps.check.outputs.lite_buildroot }}); the tools in the versions Buildroot $BUILDROOT_VERSION carries."
@@ -126,7 +129,7 @@ jobs:
           v=${{ steps.ver.outputs.version }}
           git config user.name "lite-addon-tools follow-buildroot"
           git config user.email "noreply@users.noreply.github.com"
-          git add buildroot.version CHANGELOG.md
+          git add buildroot.version CHANGELOG.md addon/openccu-lite.json
           git commit -m "lite-addon-tools $v: ${{ steps.ver.outputs.why }}
 
           The follow-buildroot workflow: both architectures built and smoke-tested on this tree."
