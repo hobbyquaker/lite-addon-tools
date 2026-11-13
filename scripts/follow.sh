@@ -22,12 +22,12 @@
 #         is 2026.08.0), and n one up from the highest existing tag of that Buildroot (from 1).
 #         The suffix in scripts/version-suffix (empty since the publication; -dev before) is appended.
 #
-#   LITE_REPO (default hobbyquaker/openccu-lite) and BUILDROOT_GIT (default the GitHub mirror) can be
+#   LITE_REPO (default openccu-lite/openccu-lite) and BUILDROOT_GIT (default the GitHub mirror) can be
 #   overridden for tests; GH_TOKEN, when set, is sent to the GitHub API (rate limit).
 #
 set -eu
 cd "$(dirname "$0")/.."
-LITE_REPO=${LITE_REPO:-hobbyquaker/openccu-lite}
+LITE_REPO=${LITE_REPO:-openccu-lite/openccu-lite}
 BUILDROOT_GIT=${BUILDROOT_GIT:-https://github.com/buildroot/buildroot}
 
 norm() { # 2026.08 -> 2026.08.0

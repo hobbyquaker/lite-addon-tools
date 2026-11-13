@@ -2,7 +2,7 @@
 
 *[Deutsch](README.md)*
 
-**Troubleshooting and administration tools** for an [openccu-lite](https://github.com/hobbyquaker/openccu-lite)
+**Troubleshooting and administration tools** for an [openccu-lite](https://github.com/openccu-lite/openccu-lite)
 system, for work over ssh. Every program is **built statically** (Buildroot with Bootlin's musl toolchain) and depends
 on nothing in the system; the addon starts **no service** and opens **no port**.
 
@@ -29,7 +29,7 @@ Buildroot carries.
 
 Needs **openccu-lite 1.2.1** or later, the first version that puts an addon's tools on the search path; older systems
 refuse the install. Install the package `tools-<arch>-<version>.tar.gz` (`aarch64` for a Raspberry Pi 3/4/5, `x86_64`
-for the virtual appliance and PCs) from the [releases page](https://github.com/hobbyquaker/lite-addon-tools/releases)
+for the virtual appliance and PCs) from the [releases page](https://github.com/openccu-lite/lite-addon-tools/releases)
 through the system's Addons page. The tools are there in the next ssh login; a shell already open keeps its search
 path.
 

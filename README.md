@@ -2,7 +2,7 @@
 
 *[English](README.en.md)*
 
-**Werkzeuge für Fehlersuche und Verwaltung** auf einem [openccu-lite](https://github.com/hobbyquaker/openccu-lite)-System,
+**Werkzeuge für Fehlersuche und Verwaltung** auf einem [openccu-lite](https://github.com/openccu-lite/openccu-lite)-System,
 für die Arbeit über ssh. Alle Programme sind **statisch gebaut** (Buildroot mit der musl-Toolchain von Bootlin) und
 hängen von nichts im System ab; das Addon startet **keinen Dienst** und öffnet **keinen Port**.
 
@@ -30,7 +30,7 @@ Buildroot des Releases mitbringt.
 Braucht **openccu-lite 1.2.1** oder neuer, die erste Version, die die Werkzeuge eines Addons in den Suchpfad legt;
 ältere Systeme lehnen die Installation ab. Das Paket `tools-<arch>-<version>.tar.gz` (`aarch64` für einen Raspberry
 Pi 3/4/5, `x86_64` für die virtuelle Appliance und PCs) von der
-[Releases-Seite](https://github.com/hobbyquaker/lite-addon-tools/releases) über die Addons-Seite des Systems
+[Releases-Seite](https://github.com/openccu-lite/lite-addon-tools/releases) über die Addons-Seite des Systems
 installieren. Die Werkzeuge sind ab der nächsten ssh-Anmeldung da; eine schon offene Shell behält ihren Suchpfad.
 
 ## Benutzung

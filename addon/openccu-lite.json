@@ -7,7 +7,7 @@
     "en": "Tools for troubleshooting and administration over ssh: socat, tcpdump, strace, nmap, htop, iotop, nano, mtr, iperf3, drill, ss, iftop, arp-scan, tmux, ncdu, picocom, lsof, pstree, mmc and gdbserver. Built statically, with no dependency on the system; no service, no port. Most tools need root."
   },
   "version": "2026.08.1.1",
-  "homepage": "https://github.com/hobbyquaker/lite-addon-tools",
+  "homepage": "https://github.com/openccu-lite/lite-addon-tools",
   "licence": "MIT (packaging); the tools under their own licences (GPL-2.0+, BSD and others, listed in share/licenses)",
   "requires": {
     "lite": "1.2.1",
